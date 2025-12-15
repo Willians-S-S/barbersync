@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: barbersync
+  datasource:
+    url: jdbc:h2:mem:dbteste
+    username: db
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+jwt:
+    key: senhaforte
+
+server:
+  port: 8085
+  servlet:
+    context-path: /api/v1

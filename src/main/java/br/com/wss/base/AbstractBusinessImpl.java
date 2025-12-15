@@ -5,6 +5,7 @@ import br.com.wss.filters.JwtToken;
 import br.com.wss.filters.JwtToken.UserTokenDetails;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import java.util.Optional;
  */
 @Getter(value = AccessLevel.PROTECTED)
 @Transactional
+@Slf4j
 public abstract class AbstractBusinessImpl<E extends BaseEntity<?>, ID extends Serializable>
 		implements BaseBusiness<E, ID> {
 
@@ -37,7 +39,7 @@ public abstract class AbstractBusinessImpl<E extends BaseEntity<?>, ID extends S
 	@Override
 	public E insert(E entity) {
 
-		final JwtToken.UserTokenDetails userDetails = getUserDetails();
+		final UserTokenDetails userDetails = getUserDetails();
 
 		if (entity.getUid() != null)
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "Id is not permitted on insert method");

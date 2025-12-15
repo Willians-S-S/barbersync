@@ -18,10 +18,6 @@ public class Account extends BaseEntity<String> {
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @UuidGenerator
-    private String uid;
-
     private String name;
 
     private String taxNumber;
@@ -32,4 +28,6 @@ public class Account extends BaseEntity<String> {
     private String phone;
 
     private String email;
+
+    private String password;
 }

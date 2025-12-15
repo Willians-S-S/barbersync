@@ -1,12 +1,13 @@
 package br.com.wss.filters;
 
-import br.com.wss.barbersync.business.AccountBusiness;
 import br.com.wss.barbersync.entities.Account;
+import br.com.wss.barbersync.repositories.AccountRepository;
 import br.com.wss.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Component;
 
@@ -23,16 +24,16 @@ public class JwtToken {
 
     private final HttpServletRequest request;
 
-    private final AccountBusiness accountBusiness;
+    private final AccountRepository accountRepository;
 
-    private static final long JWT_TOKEN_VALIDITY = (1000 * 60 * 60 * 24 * 2);
+    private static final long JWT_TOKEN_VALIDITY = (60 * 60 * 24 * 2);
 
     public String genereteToken(Account account){
         try {
             Instant now = Instant.now();
-            long expire = 300L;
 
-            var scopes = account.getRole();
+            // Garante que não é null (correção anterior)
+            var scopes = account.getRole() != null ? account.getRole() : "USER";
 
             JwtClaimsSet claims = JwtClaimsSet.builder()
                     .issuer("wss")
@@ -42,13 +43,41 @@ public class JwtToken {
                     .claim("scope", scopes)
                     .build();
 
-            String token = encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+            // IMPORTANTE: Definir o algoritmo no cabeçalho
+            var encoderParameters = JwtEncoderParameters.from(
+                    JwsHeader.with(MacAlgorithm.HS256).build(),
+                    claims
+            );
 
-            return token;
+            return encoder.encode(encoderParameters).getTokenValue();
+
         } catch (Exception e) {
-            throw new RuntimeException("Não foi possível autenticar o usuário.");
+            e.printStackTrace(); // Mantenha isso para debugar se der erro
+            throw new RuntimeException("Erro ao gerar token: " + e.getMessage());
         }
     }
+
+//    public String genereteToken(Account account){
+//        try {
+//            Instant now = Instant.now();
+//            long expire = 300L;
+//
+//            var scopes = account.getRole();
+//
+//            JwtClaimsSet claims = JwtClaimsSet.builder()
+//                    .issuer("wss")
+//                    .issuedAt(now)
+//                    .expiresAt(now.plusSeconds(JWT_TOKEN_VALIDITY))
+//                    .subject(account.getUid())
+//                    .claim("scope", scopes)
+//                    .build();
+//
+//            return encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw new RuntimeException("Não foi possível autenticar o usuário.");
+//        }
+//    }
 
     public UserTokenDetails getUserDetails() {
         final String requestTokenHeader = request.getHeader("Authorization");
@@ -65,14 +94,16 @@ public class JwtToken {
 
             Account account = new Account();
             String id = jwt.getSubject();
-            if (!id.isBlank())
-                account = accountBusiness.findByUid(id)
+            if (!id.isBlank()) {
+                account = accountRepository.findById(id)
                         .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Usuário não encontrado!"));
-
+                if (account.getDeleted() != null && Boolean.TRUE.equals(account.getDeleted())){
+                    throw new BusinessException(HttpStatus.NOT_FOUND, "Usuário " + account.getUid() + " foi deletado");
+                }
+            }   
             return new UserTokenDetails(account.getName(), account, jwtToken);
         } else
             return new UserTokenDetails("anonymousUser", null, null);
-
     }
 
     public String getToken() {
