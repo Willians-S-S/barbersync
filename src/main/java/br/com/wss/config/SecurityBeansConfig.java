@@ -22,8 +22,6 @@ public class SecurityBeansConfig {
 
     @Bean
     public JwtEncoder jwtEncoder() {
-        // CORREÇÃO: Usamos SecretKeySpec para dizer explicitamente que é "HmacSHA256"
-        // Isso ajuda o Spring a selecionar a chave correta para o algoritmo HS256
         return new NimbusJwtEncoder(new ImmutableSecret<>(new SecretKeySpec(jwtKey.getBytes(), "HmacSHA256")));
     }
 
