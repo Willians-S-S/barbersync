@@ -3,6 +3,9 @@ package br.com.wss.barbersync.resources;
 import br.com.wss.barbersync.business.AccountBusiness;
 import br.com.wss.barbersync.converters.AccountConverter;
 import br.com.wss.barbersync.dtos.AccountDTO;
+import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.repositories.projections.AccountProjection;
+import br.com.wss.base.PageImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -10,15 +13,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -30,6 +36,8 @@ public class AccountResource {
     private final AccountConverter accountConverter;
 
     public static final String ACCOUNTS = "/accounts";
+    public static final String FIND_ALL = ACCOUNTS + "/all";
+    public static final String FIND_PARAM = ACCOUNTS + "/params";
 
     @Operation(
             summary = "Criar conta",
@@ -99,11 +107,38 @@ public class AccountResource {
                     @ApiResponse(responseCode = "403", description = "Sem permissão")
             }
     )
-    @GetMapping(ACCOUNTS)
+    @GetMapping(FIND_ALL)
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AccountDTO>> getAll(){
         return ResponseEntity.ok().body(
                 accountConverter.convertToDTOList(
                         accountBusiness.findAll()));
+    }
+
+    @GetMapping(FIND_PARAM)
+    public ResponseEntity<?> findByParams(
+            @RequestParam(required = false) final String uid,
+            @RequestParam(required = false) final String name,
+            @RequestParam(required = false) final String taxNumber,
+            @RequestParam(required = false) final String email,
+            @RequestParam(required = false) final String phone,
+            @RequestParam(required = false) final String createdByName,
+            @RequestParam(required = false) final String updatedByName,
+            @RequestParam(required = false) final Role role,
+            @RequestParam(required = false) final Boolean active,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") final LocalDateTime createdStartAt,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") final LocalDateTime createdEndAt,
+            @RequestParam(required = false, defaultValue = "0") final int page,
+            @RequestParam(required = false, defaultValue = "50") final int size,
+            @RequestParam(required = false, defaultValue = "name") final String sort,
+            @RequestParam(required = false, defaultValue = "ASC") final Direction direction) {
+
+        final Page<AccountDTO> resultPage = accountBusiness.findByParams(uid, name, taxNumber, email, phone, createdByName, updatedByName, role, active, createdStartAt, createdEndAt, PageRequest.of(page, size, Sort.by(direction, sort))).map(accountConverter::convertToDTO);
+
+        if (!resultPage.hasContent())
+            return ResponseEntity.noContent().build();
+
+        return ResponseEntity.ok(new PageImpl<>(resultPage));
+
     }
 }
