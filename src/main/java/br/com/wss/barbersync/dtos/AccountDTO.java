@@ -1,6 +1,7 @@
 package br.com.wss.barbersync.dtos;
 
 import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.validation.TaxNumberValid;
 import br.com.wss.base.BaseDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.EnumType;
@@ -26,6 +27,7 @@ public class AccountDTO extends BaseDTO<String> {
     )
     private String name;
 
+    @TaxNumberValid(message = "CPF/CNPJ inválido")
     private String taxNumber;
 
     @Enumerated(EnumType.STRING)
