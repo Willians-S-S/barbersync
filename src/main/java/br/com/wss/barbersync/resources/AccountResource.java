@@ -3,8 +3,8 @@ package br.com.wss.barbersync.resources;
 import br.com.wss.barbersync.business.AccountBusiness;
 import br.com.wss.barbersync.converters.AccountConverter;
 import br.com.wss.barbersync.dtos.AccountDTO;
+import br.com.wss.barbersync.entities.Account;
 import br.com.wss.barbersync.enums.Role;
-import br.com.wss.barbersync.repositories.projections.AccountProjection;
 import br.com.wss.base.PageImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -29,6 +31,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class AccountResource {
 
     private final AccountBusiness accountBusiness;
@@ -36,6 +39,8 @@ public class AccountResource {
     private final AccountConverter accountConverter;
 
     public static final String ACCOUNTS = "/accounts";
+    public static final String CREATE_ACCOUNTS = ACCOUNTS + "/create";
+    public static final String CREATE_ACCOUNTS_ROLES = CREATE_ACCOUNTS + "/roles";
     public static final String FIND_ALL = ACCOUNTS + "/all";
     public static final String FIND_PARAM = ACCOUNTS + "/params";
 
@@ -48,7 +53,6 @@ public class AccountResource {
                             examples = @ExampleObject(
                                     name = "Exemplo de cadastro",
                                     value = """
-                                        [
                                             {
                                               "name": "Willians Silva Santos",
                                               "taxNumber": "42718894075",
@@ -56,16 +60,19 @@ public class AccountResource {
                                               "email": "willians@email.com",
                                               "password": "Senha@12345"
                                             }
-                                        ]
                                     """
                             )
                     )
             )
     )
-    @PostMapping(ACCOUNTS)
+    @PostMapping(CREATE_ACCOUNTS)
     public ResponseEntity<Void> createAccount(@RequestBody @Valid final AccountDTO accountDTO){
-        accountBusiness.insert(accountConverter.convertToEntity(accountDTO));
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        try {
+            accountBusiness.insert(accountConverter.convertToEntity(accountDTO));
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Operation(
@@ -108,7 +115,6 @@ public class AccountResource {
             }
     )
     @GetMapping(FIND_ALL)
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<AccountDTO>> getAll(){
         return ResponseEntity.ok().body(
                 accountConverter.convertToDTOList(
@@ -116,7 +122,7 @@ public class AccountResource {
     }
 
     @GetMapping(FIND_PARAM)
-    public ResponseEntity<?> findByParams(
+    public ResponseEntity<PageImpl<AccountDTO>> findByParams(
             @RequestParam(required = false) final String uid,
             @RequestParam(required = false) final String name,
             @RequestParam(required = false) final String taxNumber,
@@ -139,6 +145,40 @@ public class AccountResource {
             return ResponseEntity.noContent().build();
 
         return ResponseEntity.ok(new PageImpl<>(resultPage));
+
+    }
+
+    @Operation(
+            summary = "Criar conta com a definição do cargo, somente administrador pode realizar o cadastro",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "Exemplo de cadastro",
+                                    value = """
+                                            {
+                                              "name": "Willians Silva Santos",
+                                              "taxNumber": "42718894075",
+                                              "phone": "85999990000",
+                                              "email": "willians@email.com",
+                                              "password": "Senha@12345",
+                                              "role": "ROLE_USER"
+                                            }
+                                    """
+                            )
+                    )
+            )
+    )
+    @PostMapping(CREATE_ACCOUNTS_ROLES)
+    public ResponseEntity<?> createAccountRole(@RequestBody final AccountDTO accountDTO){
+        try {
+            Account accountCreate = accountBusiness.insert(accountConverter.convertToEntity(accountDTO));
+            return ResponseEntity.status(HttpStatus.CREATED).body(accountConverter.convertToDTO(accountCreate));
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new RuntimeException(e);
+        }
 
     }
 }

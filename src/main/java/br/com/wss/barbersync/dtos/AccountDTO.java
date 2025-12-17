@@ -31,7 +31,6 @@ public class AccountDTO extends BaseDTO<String> {
     private String taxNumber;
 
     @Enumerated(EnumType.STRING)
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Role role;
 
     private String phone;

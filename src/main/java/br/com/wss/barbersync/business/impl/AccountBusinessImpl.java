@@ -6,6 +6,7 @@ import br.com.wss.barbersync.enums.Role;
 import br.com.wss.barbersync.repositories.AccountRepository;
 import br.com.wss.barbersync.repositories.projections.AccountProjection;
 import br.com.wss.base.AbstractBusinessImpl;
+import br.com.wss.filters.JwtToken.UserTokenDetails;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,6 @@ import java.util.Optional;
 
 @Component
 @Transactional
-//@PropertySource("classpath:messageSources.properties")
 @Slf4j
 @AllArgsConstructor
 public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> implements AccountBusiness {
@@ -40,7 +40,10 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
         entity.setUid(null);
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
 
-        entity.setRole(Role.ROLE_USER);
+        UserTokenDetails userTokenDetails = super.getUserDetails();
+
+        if (userTokenDetails.getAccount() == null)
+            entity.setRole(Role.ROLE_USER);
 
         return super.insert(entity);
     }
