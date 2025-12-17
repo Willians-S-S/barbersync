@@ -33,4 +33,8 @@ public interface AccountRepository extends BaseRepository<Account, String> {
     Page<Account> findByParams(final String uid, final String name, final String taxNumber,
                                          final String email, final String phone, final String createdByName, final String updatedByName,
                                          final Role role, final Boolean active, final LocalDateTime createdStartAt, final LocalDateTime createdEndAt, final Pageable pageable);
+
+    Optional<Account> findByTaxNumber(String taxNumber);
+
+    Optional<Account> findByPhone(String phone);
 }

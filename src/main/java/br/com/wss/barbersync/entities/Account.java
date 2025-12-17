@@ -20,13 +20,16 @@ public class Account extends BaseEntity<String> {
 
     private String name;
 
+    @Column(unique = true, nullable = false)
     private String taxNumber;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(unique = true, nullable = false)
     private String phone;
 
+    @Column(unique = true, nullable = false)
     private String email;
 
     private String password;

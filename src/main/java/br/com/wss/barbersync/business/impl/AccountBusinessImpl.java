@@ -6,12 +6,15 @@ import br.com.wss.barbersync.enums.Role;
 import br.com.wss.barbersync.repositories.AccountRepository;
 import br.com.wss.barbersync.repositories.projections.AccountProjection;
 import br.com.wss.base.AbstractBusinessImpl;
+import br.com.wss.base.TransactionType;
+import br.com.wss.exception.BusinessException;
 import br.com.wss.filters.JwtToken.UserTokenDetails;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,13 +40,22 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
 
     @Override
     public Account insert(final Account entity){
+
+        validate(entity, TransactionType.INSERT);
+
         entity.setUid(null);
         entity.setPassword(passwordEncoder.encode(entity.getPassword()));
 
         UserTokenDetails userTokenDetails = super.getUserDetails();
 
-        if (userTokenDetails.getAccount() == null)
+        Role existingRole = Optional.ofNullable(userTokenDetails.getAccount())
+                .map(Account::getRole)
+                .orElse(null);
+
+        if (existingRole == null || Role.ROLE_USER.equals(existingRole))
             entity.setRole(Role.ROLE_USER);
+
+        entity.setDeleted(false);
 
         return super.insert(entity);
     }
@@ -57,5 +69,20 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
                                          final Role role, final Boolean active, final LocalDateTime createdStartAt, final LocalDateTime createdEndAt,
                                          final Pageable pageable){
         return getRepository().findByParams(uid, name, taxNumber, email, phone, createdByName, updatedByName, role, active, createdStartAt, createdEndAt, pageable);
+    }
+
+    @Override
+    protected void validate(final Account entity, final TransactionType transactionType) {
+        getRepository().findByEmail(entity.getEmail()).ifPresent(acc -> {
+            throw new BusinessException(HttpStatus.CONFLICT, "Já existe uma conta cadastrada com este e-mail.");
+        });
+
+        getRepository().findByTaxNumber(entity.getTaxNumber()).ifPresent(acc -> {
+            throw new BusinessException(HttpStatus.CONFLICT, "Já existe uma conta cadastrada com este CPF/CNPJ.");
+        });
+
+        getRepository().findByPhone(entity.getPhone()).ifPresent(acc -> {
+            throw new BusinessException(HttpStatus.CONFLICT, "Já existe uma conta cadastrada com este número.");
+        });
     }
 }
