@@ -85,4 +85,10 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
             throw new BusinessException(HttpStatus.CONFLICT, "Já existe uma conta cadastrada com este número.");
         });
     }
+
+    public Account getCurrentAccount(){
+        Account loggedUser = super.getUserDetails().getAccount();
+
+        return Optional.ofNullable(loggedUser).orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Usuário não autenticado."));
+    }
 }

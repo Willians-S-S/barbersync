@@ -179,6 +179,11 @@ public class AccountResource {
             log.error(e.getMessage());
             throw new RuntimeException(e);
         }
+    }
 
+    @GetMapping(ACCOUNTS)
+    public ResponseEntity<AccountDTO> getCurrentAccount(){
+        AccountDTO dto = accountConverter.convertToDTO(accountBusiness.getCurrentAccount());
+        return ResponseEntity.ok(dto);
     }
 }

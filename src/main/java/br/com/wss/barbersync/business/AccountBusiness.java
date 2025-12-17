@@ -25,4 +25,6 @@ public interface AccountBusiness extends BaseBusiness<Account, String> {
     Page<Account> findByParams(final String uid, final String name, final String taxNumber, final String email, final String phone, final String createdByName, final String updatedByName,
                                          final Role role, final Boolean active, final LocalDateTime createdStartAt, final LocalDateTime createdEndAt,
                                          final Pageable pageable);
+
+    Account getCurrentAccount();
 }
