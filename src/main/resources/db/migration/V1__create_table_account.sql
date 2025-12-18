@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS account (
+        uid varchar(255) NOT NULL,
+        created_at timestamp(6) NULL,
+        created_by_name varchar(255) NULL,
+        created_by_uid varchar(255) NULL,
+        deleted bool NULL,
+        deleted_at timestamp(6) NULL,
+        deleted_by_name varchar(255) NULL,
+        deleted_by_uid varchar(255) NULL,
+        updated_at timestamp(6) NULL,
+        updated_by_name varchar(255) NULL,
+        updated_by_uid varchar(255) NULL,
+        email varchar(255) NULL,
+        "name" varchar(255) NULL,
+        "password" varchar(255) NULL,
+        phone varchar(255) NULL,
+        "role" varchar(255) NULL,
+        tax_number varchar(255) NULL,
+        CONSTRAINT account_pkey PRIMARY KEY (uid),
+        CONSTRAINT account_role_check CHECK (((role)::text = ANY ((ARRAY['ROLE_USER'::character varying, 'ROLE_ADM'::character varying])::text[])))
+);

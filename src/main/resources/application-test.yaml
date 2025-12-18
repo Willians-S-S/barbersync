@@ -1,10 +1,8 @@
 spring:
-  profiles:
-    active: test
   application:
     name: barbersync
   datasource:
-    url: jdbc:postgresql://localhost:5432/barbersync_db
+    url: jdbc:postgresql://localhost:5433/barbersync_db_test
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
