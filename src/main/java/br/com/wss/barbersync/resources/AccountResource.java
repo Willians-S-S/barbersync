@@ -186,4 +186,10 @@ public class AccountResource {
         AccountDTO dto = accountConverter.convertToDTO(accountBusiness.getCurrentAccount());
         return ResponseEntity.ok(dto);
     }
+
+    @PutMapping(ACCOUNTS)
+    public ResponseEntity<AccountDTO> updateAccount(@RequestBody AccountDTO accountDTO) {
+        Account account = accountBusiness.update(accountConverter.convertToEntity(accountDTO));
+        return ResponseEntity.ok(accountConverter.convertToDTO(account));
+    }
 }

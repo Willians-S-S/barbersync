@@ -24,6 +24,7 @@ public class WebSecurityConfig {
                         auth -> auth
                                 .requestMatchers(HttpMethod.POST, AuthenticationResource.AUTHENTICATE).permitAll()
                                 .requestMatchers(HttpMethod.GET, AccountResource.ACCOUNTS).authenticated()
+                                .requestMatchers(HttpMethod.PUT, AccountResource.ACCOUNTS).authenticated()
                                 .requestMatchers(HttpMethod.POST, AccountResource.CREATE_ACCOUNTS).permitAll()
                                 .requestMatchers(HttpMethod.POST, AccountResource.CREATE_ACCOUNTS_ROLES).hasAuthority("SCOPE_ROLE_ADM")
                                 .requestMatchers(HttpMethod.GET, AccountResource.FIND_ALL).hasAuthority("SCOPE_ROLE_ADM")

@@ -4,7 +4,6 @@ import br.com.wss.barbersync.business.AccountBusiness;
 import br.com.wss.barbersync.entities.Account;
 import br.com.wss.barbersync.enums.Role;
 import br.com.wss.barbersync.repositories.AccountRepository;
-import br.com.wss.barbersync.repositories.projections.AccountProjection;
 import br.com.wss.base.AbstractBusinessImpl;
 import br.com.wss.base.TransactionType;
 import br.com.wss.exception.BusinessException;
@@ -90,5 +89,42 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
         Account loggedUser = super.getUserDetails().getAccount();
 
         return Optional.ofNullable(loggedUser).orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Usuário não autenticado."));
+    }
+
+    @Override
+    public Account update(final Account entity) {
+        Account loggedAccount = super.getUserDetails().getAccount();
+
+        loggedAccount.setName(entity.getName());
+
+        if(!loggedAccount.getEmail().equals(entity.getEmail())){
+            getRepository().findByEmail(entity.getEmail())
+                    .ifPresent(account -> {
+                        throw new BusinessException(HttpStatus.CONFLICT, "Já existe uma conta cadastrada com este e-mail.");
+                    });
+            loggedAccount.setEmail(entity.getEmail());
+        }
+
+        if(!loggedAccount.getPhone().equals(entity.getPhone())){
+            getRepository().findByPhone(entity.getPhone())
+                    .ifPresent(account -> {
+                        throw new BusinessException(HttpStatus.CONFLICT, "Já existe uma conta cadastrada com este número.");
+                    });
+            loggedAccount.setPhone(entity.getPhone());
+        }
+
+        if(!loggedAccount.getTaxNumber().equals(entity.getTaxNumber())){
+            getRepository().findByTaxNumber(entity.getTaxNumber())
+                    .ifPresent(account -> {
+                        throw new BusinessException(HttpStatus.CONFLICT, "Já existe uma conta cadastrada com este número.");
+                    });
+            loggedAccount.setTaxNumber(entity.getTaxNumber());
+        }
+
+        loggedAccount.setUpdatedAt(LocalDateTime.now());
+        loggedAccount.setUpdatedByName(entity.getName());
+        loggedAccount.setUpdatedByUid(loggedAccount.getUid());
+
+        return getRepository().save(loggedAccount);
     }
 }
