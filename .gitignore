@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 diff.txt
+.env
 
 ### STS ###
 .apt_generated
@@ -19,6 +20,7 @@ diff.txt
 *.iws
 *.iml
 *.ipr
+htmlReport
 
 ### NetBeans ###
 /nbproject/private/

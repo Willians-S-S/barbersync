@@ -1,16 +1,10 @@
 package br.com.wss.barbersync.business;
 
-import br.com.wss.barbersync.dtos.AccountDTO;
 import br.com.wss.barbersync.entities.Account;
 import br.com.wss.barbersync.enums.Role;
-import br.com.wss.barbersync.repositories.projections.AccountProjection;
 import br.com.wss.base.BaseBusiness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,4 +21,6 @@ public interface AccountBusiness extends BaseBusiness<Account, String> {
                                          final Pageable pageable);
 
     Account getCurrentAccount();
+
+    void delete();
 }

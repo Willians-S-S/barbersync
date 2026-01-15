@@ -34,7 +34,7 @@ public abstract class AbstractBusinessImpl<E extends BaseEntity<?>, ID extends S
 	private MessageSource messageSource;
 
 	@Autowired
-	private JwtToken JwtToken;
+	private JwtToken jwtToken;
 
 	@Override
 	public E insert(E entity) {
@@ -164,11 +164,11 @@ public abstract class AbstractBusinessImpl<E extends BaseEntity<?>, ID extends S
 	}
 
 	protected UserTokenDetails getUserDetails() {
-		return JwtToken.getUserDetails();
+		return jwtToken.getUserDetails();
 	}
 
 	protected String getToken() {
-		return JwtToken.getToken();
+		return jwtToken.getToken();
 	}
 
 	protected abstract BaseRepository<E, ID> getRepository();

@@ -120,7 +120,7 @@ public class JwtToken {
 
     @AllArgsConstructor
     @Getter
-    public class UserTokenDetails {
+    public static class UserTokenDetails {
         private String username;
         private Account account;
         private String jwtToken;
