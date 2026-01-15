@@ -51,7 +51,10 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
                 .map(Account::getRole)
                 .orElse(null);
 
-        if (existingRole == null || Role.ROLE_USER.equals(existingRole))
+        if (Role.ROLE_USER.equals(existingRole))
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "A operação não pode ser realizada porque o usuário possui o papel de " + existingRole);
+
+        if (existingRole == null)
             entity.setRole(Role.ROLE_USER);
 
         entity.setDeleted(false);
@@ -126,5 +129,11 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
         loggedAccount.setUpdatedByUid(loggedAccount.getUid());
 
         return getRepository().save(loggedAccount);
+    }
+
+    @Override
+    public void delete(){
+        UserTokenDetails userTokenDetails = getUserDetails();
+        super.delete(userTokenDetails.getAccount().getUid());
     }
 }
