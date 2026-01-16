@@ -14,13 +14,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -186,5 +189,63 @@ public class AccountBusinessImplTest {
         assertEquals(HttpStatus.CONFLICT.value(), exception.getBody().getStatus());
         assertEquals("Já existe uma conta cadastrada com este número.", exception.getBody().getDetail());
         verify(accountRepository, times(1)).findByPhone(any());
+    }
+
+    @Test
+    @DisplayName("Deve retornar todas as contas")
+    void shouldReturnAllAccounts() {
+        // ARRANGE (Preparação)
+        when(accountRepository.findAll()).thenReturn(Arrays.asList(account, account));
+
+        // ACT (Ação)
+        List<Account> result = accountBusiness.findAll();
+
+        // ASSERT (Verificação)
+        assertNotNull(result);
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    @DisplayName("Deve retornar lista vazia quando não existirem contas")
+    void shouldReturnEmptyListWhenNoAccountsExist() {
+        // ARRANGE (Preparação)
+        when(accountRepository.findAll()).thenReturn(Collections.emptyList());
+
+        // ACT (Ação)
+        List<Account> result = accountBusiness.findAll();
+
+        // ASSERT (Verificação)
+        assertNotNull(result);
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    @DisplayName("Deve filtrar contas pelo UUID e retornar a página correta")
+    void shouldFilterAccountsByUid() {
+        // ARRANGE (Preparação)
+        Pageable pageable = PageRequest.of(0, 10);
+
+        List<Account> accounts = new ArrayList<>();
+        accounts.add(account);
+
+        Page<Account> page = new PageImpl<>(accounts, pageable, accounts.size());
+
+        String uuid = UUID.randomUUID().toString();
+
+        when(accountRepository.findByParams(uuid,
+                null, null, null, null,
+                null, null, null,
+                null, null, null, pageable)).thenReturn(page);
+
+
+        // ACT (Ação)
+        Page<Account> result = accountBusiness.findByParams(uuid,
+                null, null, null, null,
+                null, null, null,
+                null, null, null, pageable);
+
+        // ASSERT (Verifição)
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
     }
 }
