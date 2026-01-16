@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -247,5 +248,51 @@ public class AccountBusinessImplTest {
         // ASSERT (Verifição)
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    @DisplayName("Deve retornar as contas criadas dentro do intervalo de datas especificado")
+    void shouldFindAccountsByDateRange() {
+        // ARRANGE (Preparação)
+        Account account1 = new Account();
+        Account account2 = new Account();
+        Account account3 = new Account();
+
+        BeanUtils.copyProperties(account, account1);
+        BeanUtils.copyProperties(account, account2);
+        BeanUtils.copyProperties(account, account3);
+
+        account1.setCreatedAt(LocalDateTime.of(2025, 1, 1, 0, 0, 0));
+        account2.setCreatedAt(LocalDateTime.of(2025, 1, 5, 0, 0, 0));
+        account3.setCreatedAt(LocalDateTime.of(2025, 1, 10, 0, 0, 0));
+
+        List<Account> accounts = List.of(account1, account2, account3);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Account> page = new PageImpl<>(accounts, pageable, accounts.size());
+
+        when(accountRepository.findByParams(null,
+                null, null, null, null,
+                null, null, null,
+                null, LocalDateTime.of(2025, 1, 1, 0, 0, 0),
+                LocalDateTime.of(2025, 1, 10, 0, 0, 0), pageable)).thenReturn(page);
+
+        // ACT (Ação)
+        Page<Account> result = accountBusiness.findByParams(null,
+                null, null, null, null,
+                null, null, null,
+                null, LocalDateTime.of(2025, 1, 1, 0, 0, 0),
+                LocalDateTime.of(2025, 1, 10, 0, 0, 0), pageable);
+
+        // ASSERT (Verificação)
+        assertNotNull(result);
+        assertEquals(3, result.getTotalElements());
+        verify(accountRepository).findByParams(
+                eq(null), eq(null), eq(null), eq(null), eq(null),
+                eq(null), eq(null), eq(null), eq(null),
+                eq(LocalDateTime.of(2025, 1, 1, 0, 0, 0)),
+                eq(LocalDateTime.of(2025, 1, 10, 0, 0, 0)),
+                eq(pageable)
+        );
     }
 }
