@@ -26,6 +26,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -367,5 +368,31 @@ public class AccountBusinessImplTest {
 
         assertNotNull(result);
         verify(accountRepository).findByParams(null, null, null, null, null, null, null, null, null, null, null, pageable);
+    }
+
+    @Test
+    @DisplayName("Deve retornar uma conta presente quando o e-mail cadastrado for fornecido")
+    void shouldReturnAccountWhenEmailExists() {
+        String email = account.getEmail();
+        when(accountRepository.findByEmail(email)).thenReturn(Optional.of(account));
+
+        Optional<Account> result = accountBusiness.findByEmail(email);
+
+        assertNotNull(result);
+        assertEquals(account.getEmail(), result.get().getEmail());
+        verify(accountRepository).findByEmail(email);
+    }
+
+    @Test
+    @DisplayName("Deve retornar vazio quando buscar por um e-mail que não consta na base")
+    void shouldReturnEmptyWhenEmailNotFound() {
+        String email = account.getEmail();
+        when(accountRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        Optional<Account> result = accountBusiness.findByEmail(email);
+
+        assertNotNull(result);
+        assertThat(result).isEmpty();
+        verify(accountRepository).findByEmail(email);
     }
 }
