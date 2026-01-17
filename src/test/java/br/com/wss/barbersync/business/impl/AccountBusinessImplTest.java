@@ -295,4 +295,77 @@ public class AccountBusinessImplTest {
                 eq(pageable)
         );
     }
+
+    @Test
+    @DisplayName("Deve filtrar contas pelo Nome (parcial) e retornar a página correta")
+    void shouldFilterAccountsByName() {
+        Pageable pageable = PageRequest.of(0, 10);
+        String name = "João";
+        Page<Account> page = new PageImpl<>(List.of(account), pageable, 1);
+
+        when(accountRepository.findByParams(eq(null), eq(name), any(), any(), any(),
+                any(), any(), any(), any(), any(), any(), eq(pageable))).thenReturn(page);
+
+        Page<Account> result = accountBusiness.findByParams(null, name, null, null, null,
+                null, null, null, null, null, null, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        verify(accountRepository).findByParams(null, name, null, null, null, null, null, null, null, null, null, pageable);
+    }
+
+    @Test
+    @DisplayName("Deve filtrar pelo Email, TaxNumber e Phone")
+    void shouldFilterByContactDetails() {
+        Pageable pageable = PageRequest.of(0, 10);
+        String email = "teste@email.com";
+        String taxNumber = "123456";
+        String phone = "99999";
+
+        Page<Account> page = new PageImpl<>(List.of(account), pageable, 1);
+
+        when(accountRepository.findByParams(null, null, taxNumber, email, phone,
+                null, null, null, null, null, null, pageable)).thenReturn(page);
+
+        Page<Account> result = accountBusiness.findByParams(null, null, taxNumber, email, phone,
+                null, null, null, null, null, null, pageable);
+
+        assertNotNull(result);
+        verify(accountRepository).findByParams(null, null, taxNumber, email, phone, null, null, null, null, null, null, pageable);
+    }
+
+    @Test
+    @DisplayName("Deve filtrar pelo criador e pelo papel (Role)")
+    void shouldFilterByCreatorAndRole() {
+        Pageable pageable = PageRequest.of(0, 10);
+        String creator = "Admin";
+        Role role = Role.ROLE_ADM;
+
+        Page<Account> page = new PageImpl<>(List.of(account), pageable, 1);
+
+        when(accountRepository.findByParams(null, null, null, null, null,
+                creator, null, role, null, null, null, pageable)).thenReturn(page);
+
+        Page<Account> result = accountBusiness.findByParams(null, null, null, null, null,
+                creator, null, role, null, null, null, pageable);
+
+        assertNotNull(result);
+        verify(accountRepository).findByParams(null, null, null, null, null, creator, null, role, null, null, null, pageable);
+    }
+
+    @Test
+    @DisplayName("Deve retornar todas as contas quando todos os parâmetros forem nulos")
+    void shouldReturnAllAccountsWhenParamsAreNull() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Account> page = new PageImpl<>(List.of(account), pageable, 1);
+
+        when(accountRepository.findByParams(null, null, null, null, null,
+                null, null, null, null, null, null, pageable)).thenReturn(page);
+
+        Page<Account> result = accountBusiness.findByParams(null, null, null, null, null,
+                null, null, null, null, null, null, pageable);
+
+        assertNotNull(result);
+        verify(accountRepository).findByParams(null, null, null, null, null, null, null, null, null, null, null, pageable);
+    }
 }
