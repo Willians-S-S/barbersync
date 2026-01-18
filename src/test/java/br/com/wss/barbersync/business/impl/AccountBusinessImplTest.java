@@ -395,4 +395,27 @@ public class AccountBusinessImplTest {
         assertThat(result).isEmpty();
         verify(accountRepository).findByEmail(email);
     }
+
+    @Test
+    void shouldReturnCurrentAccountWhenUserIsAuthenticated() {
+        UserTokenDetails userTokenDetails = new UserTokenDetails("user", account, "jwt");
+        when(jwtToken.getUserDetails()).thenReturn(userTokenDetails);
+
+        Account result = accountBusiness.getCurrentAccount();
+
+        assertNotNull(result);
+        assertEquals(account.getName(),  result.getName());
+    }
+
+    @Test
+    void shouldThrowBusinessExceptionWhenUserIsNotAuthenticated(){
+        UserTokenDetails userTokenDetails = new UserTokenDetails("anonymousUser", null, null);
+        when(jwtToken.getUserDetails()).thenReturn(userTokenDetails);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> accountBusiness.getCurrentAccount());
+
+        assertNotNull(exception);
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+        assertEquals("Usuário não autenticado.", exception.getBody().getDetail());
+    }
 }
