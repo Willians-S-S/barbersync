@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -521,5 +522,47 @@ public class AccountBusinessImplTest {
         // ACT & ASSERT
         BusinessException exception = assertThrows(BusinessException.class, () -> accountBusiness.update(updateData));
         assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Deve chamar o delete da superclasse com o UID da conta logada")
+    void shouldDeleteCurrentAccountSuccessfully() {
+        // ARRANGE
+        String expectedUid = UUID.randomUUID().toString();
+
+        Account loggedAccount = account;
+        loggedAccount.setUid(expectedUid);
+        loggedAccount.setName("User Test");
+
+        UserTokenDetails userTokenDetails = new UserTokenDetails("user", loggedAccount, "jwt");
+
+        when(jwtToken.getUserDetails()).thenReturn(userTokenDetails);
+
+        when(accountRepository.findById(expectedUid)).thenReturn(Optional.of(loggedAccount));
+
+        when(accountRepository.save(any(Account.class))).thenAnswer(i -> i.getArgument(0));
+
+        // ACT
+        accountBusiness.delete();
+
+        // ASSERT
+        // No soft delete, o repository.save é chamado com deleted = true
+        ArgumentCaptor<Account> accountCaptor = ArgumentCaptor.forClass(Account.class);
+        verify(accountRepository).save(accountCaptor.capture());
+
+        assertTrue(accountCaptor.getValue().getDeleted());
+        assertEquals(expectedUid, accountCaptor.getValue().getDeletedByUid());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando não houver conta no contexto ao tentar deletar")
+    void shouldThrowExceptionWhenDeletingWithoutAccount() {
+        // ARRANGE
+        when(jwtToken.getUserDetails()).thenReturn(null);
+
+        // ACT & ASSERT
+        assertThrows(NullPointerException.class, () -> {
+            accountBusiness.delete();
+        });
     }
 }
