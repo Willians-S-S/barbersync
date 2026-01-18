@@ -418,4 +418,108 @@ public class AccountBusinessImplTest {
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
         assertEquals("Usuário não autenticado.", exception.getBody().getDetail());
     }
+
+    @Test
+    @DisplayName("Deve atualizar a conta com sucesso quando todos os dados são válidos e novos")
+    void shouldUpdateAccountSuccessfully() {
+        // ARRANGE
+        Account loggedAccount = new Account();
+        loggedAccount.setUid("123");
+        loggedAccount.setName("Antigo Nome");
+        loggedAccount.setEmail("antigo@email.com");
+        loggedAccount.setPhone("1111111");
+        loggedAccount.setTaxNumber("111.111.111-11");
+
+        Account updateData = new Account();
+        updateData.setName("Novo Nome");
+        updateData.setEmail("novo@email.com");
+        updateData.setPhone("2222222");
+        updateData.setTaxNumber("222.222.222-22");
+
+        UserTokenDetails userTokenDetails = new UserTokenDetails("user", loggedAccount, "jwt");
+        when(jwtToken.getUserDetails()).thenReturn(userTokenDetails);
+
+        // Mocks para garantir que os novos dados não existem no banco
+        when(accountRepository.findByEmail(updateData.getEmail())).thenReturn(Optional.empty());
+        when(accountRepository.findByPhone(updateData.getPhone())).thenReturn(Optional.empty());
+        when(accountRepository.findByTaxNumber(updateData.getTaxNumber())).thenReturn(Optional.empty());
+        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // ACT
+        Account result = accountBusiness.update(updateData);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals("Novo Nome", result.getName());
+        assertEquals("novo@email.com", result.getEmail());
+        verify(accountRepository).save(any(Account.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar BusinessException quando o novo e-mail já estiver em uso")
+    void shouldThrowExceptionWhenEmailAlreadyExists() {
+        // ARRANGE
+        Account loggedAccount = new Account();
+        loggedAccount.setEmail("antigo@email.com");
+
+        Account updateData = new Account();
+        updateData.setEmail("existente@email.com");
+
+        UserTokenDetails userTokenDetails = new UserTokenDetails("user", loggedAccount, "jwt");
+        when(jwtToken.getUserDetails()).thenReturn(userTokenDetails);
+
+        when(accountRepository.findByEmail(updateData.getEmail())).thenReturn(Optional.of(new Account()));
+
+        // ACT & ASSERT
+        BusinessException exception = assertThrows(BusinessException.class, () -> accountBusiness.update(updateData));
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertTrue(exception.getBody().getDetail().contains("e-mail"));
+    }
+
+    @Test
+    @DisplayName("Deve lançar BusinessException quando o novo telefone já estiver em uso")
+    void shouldThrowExceptionWhenPhoneAlreadyExists() {
+        // ARRANGE
+        Account loggedAccount = new Account();
+        loggedAccount.setEmail("mesmo@email.com");
+        loggedAccount.setPhone("111");
+
+        Account updateData = new Account();
+        updateData.setEmail("mesmo@email.com");
+        updateData.setPhone("222");
+
+        UserTokenDetails userTokenDetails = new UserTokenDetails("user", loggedAccount, "jwt");
+        when(jwtToken.getUserDetails()).thenReturn(userTokenDetails);
+
+        when(accountRepository.findByPhone("222")).thenReturn(Optional.of(new Account()));
+
+        // ACT & ASSERT
+        BusinessException exception = assertThrows(BusinessException.class, () -> accountBusiness.update(updateData));
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+        assertTrue(exception.getBody().getDetail().contains("número"));
+    }
+
+    @Test
+    @DisplayName("Deve lançar BusinessException quando o novo TaxNumber já estiver em uso")
+    void shouldThrowExceptionWhenTaxNumberAlreadyExists() {
+        // ARRANGE
+        Account loggedAccount = new Account();
+        loggedAccount.setEmail("mesmo@email.com");
+        loggedAccount.setPhone("111");
+        loggedAccount.setTaxNumber("OLD-TAX");
+
+        Account updateData = new Account();
+        updateData.setEmail("mesmo@email.com");
+        updateData.setPhone("111");
+        updateData.setTaxNumber("NEW-TAX");
+
+        UserTokenDetails userTokenDetails = new UserTokenDetails("user", loggedAccount, "jwt");
+        when(jwtToken.getUserDetails()).thenReturn(userTokenDetails);
+
+        when(accountRepository.findByTaxNumber("NEW-TAX")).thenReturn(Optional.of(new Account()));
+
+        // ACT & ASSERT
+        BusinessException exception = assertThrows(BusinessException.class, () -> accountBusiness.update(updateData));
+        assertEquals(HttpStatus.CONFLICT, exception.getStatusCode());
+    }
 }
