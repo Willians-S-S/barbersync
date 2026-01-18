@@ -125,7 +125,7 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
         }
 
         loggedAccount.setUpdatedAt(LocalDateTime.now());
-        loggedAccount.setUpdatedByName(entity.getName());
+        loggedAccount.setUpdatedByName(loggedAccount.getName());
         loggedAccount.setUpdatedByUid(loggedAccount.getUid());
 
         return getRepository().save(loggedAccount);
