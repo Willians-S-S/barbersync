@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 public enum Role {
 
     ROLE_USER("Usuário"),
-    ROLE_ADM("Administrador");
+    ROLE_ADM("Administrador"),
+    ROLE_OWNER("Dono"),
+    ROLE_BARBER("Barbeiro");
 
 
     private String name;

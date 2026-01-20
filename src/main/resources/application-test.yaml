@@ -12,6 +12,8 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+  flyway:
+    baseline-on-migrate: true
 
 jwt:
     key: ${PASS_JWT}
