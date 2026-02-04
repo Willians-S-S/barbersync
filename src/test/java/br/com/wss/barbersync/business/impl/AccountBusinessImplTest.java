@@ -1,8 +1,10 @@
 package br.com.wss.barbersync.business.impl;
 
 import br.com.wss.barbersync.business.ClientBusiness;
+import br.com.wss.barbersync.business.OwnerBusiness;
 import br.com.wss.barbersync.entities.Account;
 import br.com.wss.barbersync.entities.Client;
+import br.com.wss.barbersync.entities.Owner;
 import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.barbersync.repositories.AccountRepository;
 import br.com.wss.base.TransactionType;
@@ -51,6 +53,9 @@ public class AccountBusinessImplTest {
 
     @Mock
     private ClientBusiness clientBusiness;
+
+    @Mock
+    private OwnerBusiness ownerBusiness;
 
     private Account account;
     private Account savedAccount;
@@ -108,7 +113,7 @@ public class AccountBusinessImplTest {
 
     @Test
     @DisplayName("Deve salvar usuário com sucesso")
-    void shouldCreateAccount() {
+    void shouldCreateAccountClient() {
 
         // ARRANGE (Preparação)
         UserTokenDetails mockTokenDetails = mock(UserTokenDetails.class);
@@ -129,6 +134,31 @@ public class AccountBusinessImplTest {
         assertNotNull(result.getUid());
         assertEquals(RoleAccountEnum.ROLE_CLIENT, result.getRoleAccountEnum());
         verify(clientBusiness).insert(any(Client.class));
+    }
+
+    @Test
+    void shouldCreateAccountOwnerByAdmin(){
+        UserTokenDetails mockTokenDetails = mock(UserTokenDetails.class);
+        when(jwtToken.getUserDetails()).thenReturn(mockTokenDetails);
+
+        roleAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_ADM);
+        when(mockTokenDetails.getAccount()).thenReturn(roleAccount);
+
+        savedAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_OWNER);
+        when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
+
+        when(ownerBusiness.insert(any(Owner.class))).thenReturn(new Owner());
+
+        account.setRoleAccountEnum(RoleAccountEnum.ROLE_OWNER);
+
+        // ACT
+        Account result = accountBusiness.insert(account);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(RoleAccountEnum.ROLE_OWNER, result.getRoleAccountEnum());
+        verify(ownerBusiness).insert(any(Owner.class));
+
     }
 
     @Test
