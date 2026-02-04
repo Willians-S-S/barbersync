@@ -215,6 +215,79 @@ public class AccountBusinessImplTest {
     }
 
     @Test
+    void shouldCreateAccountOwnerByOwner(){
+        UserTokenDetails mockTokenDetails = mock(UserTokenDetails.class);
+        when(jwtToken.getUserDetails()).thenReturn(mockTokenDetails);
+
+        roleAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_OWNER);
+        when(mockTokenDetails.getAccount()).thenReturn(roleAccount);
+
+        savedAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_OWNER);
+        when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
+
+        when(ownerBusiness.insert(any(Owner.class))).thenReturn(new Owner());
+
+        account.setRoleAccountEnum(RoleAccountEnum.ROLE_OWNER);
+
+        // ACT
+        Account result = accountBusiness.insert(account);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(RoleAccountEnum.ROLE_OWNER, result.getRoleAccountEnum());
+        verify(ownerBusiness).insert(any(Owner.class));
+
+    }
+
+    @Test
+    void shouldCreateAccountClientByOwner(){
+        UserTokenDetails mockTokenDetails = mock(UserTokenDetails.class);
+        when(jwtToken.getUserDetails()).thenReturn(mockTokenDetails);
+
+        roleAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_OWNER);
+        when(mockTokenDetails.getAccount()).thenReturn(roleAccount);
+
+        savedAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
+        when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
+
+        when(clientBusiness.insert(any(Client.class))).thenReturn(new Client());
+
+        account.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
+
+        // ACT
+        Account result = accountBusiness.insert(account);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(RoleAccountEnum.ROLE_CLIENT, result.getRoleAccountEnum());
+        verify(clientBusiness).insert(any(Client.class));
+    }
+
+    @Test
+    void shouldCreateAccountEmployeeByOwner(){
+        UserTokenDetails mockTokenDetails = mock(UserTokenDetails.class);
+        when(jwtToken.getUserDetails()).thenReturn(mockTokenDetails);
+
+        roleAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_ADM);
+        when(mockTokenDetails.getAccount()).thenReturn(roleAccount);
+
+        savedAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_EMPLOYEE);
+        when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
+
+        when(employeeBusiness.insert(any(Employee.class))).thenReturn(new Employee());
+
+        account.setRoleAccountEnum(RoleAccountEnum.ROLE_EMPLOYEE);
+
+        // ACT
+        Account result = accountBusiness.insert(account);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(RoleAccountEnum.ROLE_EMPLOYEE, result.getRoleAccountEnum());
+        verify(employeeBusiness).insert(any(Employee.class));
+    }
+
+    @Test
     @DisplayName("Não Deve salvar usuário com por causa do ROLE_CLIENT no token")
     void shouldNonCreateAccountSetRoleUserToken() {
         // ARRANGE (Preparação)
