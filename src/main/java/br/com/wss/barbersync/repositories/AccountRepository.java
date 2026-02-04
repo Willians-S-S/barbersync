@@ -1,7 +1,7 @@
 package br.com.wss.barbersync.repositories;
 
 import br.com.wss.barbersync.entities.Account;
-import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.base.BaseRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,8 +31,8 @@ public interface AccountRepository extends BaseRepository<Account, String> {
             + "      OR (account.created_at BETWEEN TO_TIMESTAMP(CAST(:createdStartAt AS VARCHAR), 'YYYY-MM-DD HH24:MI:SS') "
             + "          AND TO_TIMESTAMP(CAST(:createdEndAt AS VARCHAR), 'YYYY-MM-DD HH24:MI:SS'))) ")
     Page<Account> findByParams(final String uid, final String name, final String taxNumber,
-                                         final String email, final String phone, final String createdByName, final String updatedByName,
-                                         final Role role, final Boolean active, final LocalDateTime createdStartAt, final LocalDateTime createdEndAt, final Pageable pageable);
+                               final String email, final String phone, final String createdByName, final String updatedByName,
+                               final RoleAccountEnum roleAccountEnum, final Boolean active, final LocalDateTime createdStartAt, final LocalDateTime createdEndAt, final Pageable pageable);
 
     Optional<Account> findByTaxNumber(String taxNumber);
 
