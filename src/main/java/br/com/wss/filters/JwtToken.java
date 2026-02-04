@@ -32,8 +32,7 @@ public class JwtToken {
         try {
             Instant now = Instant.now();
 
-            // Garante que não é null (correção anterior)
-            var scopes = account.getRole() != null ? account.getRole() : "USER";
+            var scopes = account.getRoleAccountEnum() != null ? account.getRoleAccountEnum() : "USER";
 
             JwtClaimsSet claims = JwtClaimsSet.builder()
                     .issuer("wss")
@@ -43,7 +42,6 @@ public class JwtToken {
                     .claim("scope", scopes)
                     .build();
 
-            // IMPORTANTE: Definir o algoritmo no cabeçalho
             var encoderParameters = JwtEncoderParameters.from(
                     JwsHeader.with(MacAlgorithm.HS256).build(),
                     claims
@@ -56,28 +54,6 @@ public class JwtToken {
             throw new RuntimeException("Erro ao gerar token: " + e.getMessage());
         }
     }
-
-//    public String genereteToken(Account account){
-//        try {
-//            Instant now = Instant.now();
-//            long expire = 300L;
-//
-//            var scopes = account.getRole();
-//
-//            JwtClaimsSet claims = JwtClaimsSet.builder()
-//                    .issuer("wss")
-//                    .issuedAt(now)
-//                    .expiresAt(now.plusSeconds(JWT_TOKEN_VALIDITY))
-//                    .subject(account.getUid())
-//                    .claim("scope", scopes)
-//                    .build();
-//
-//            return encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new RuntimeException("Não foi possível autenticar o usuário.");
-//        }
-//    }
 
     public UserTokenDetails getUserDetails() {
         final String requestTokenHeader = request.getHeader("Authorization");
