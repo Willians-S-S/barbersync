@@ -1,6 +1,6 @@
 package br.com.wss.barbersync.repositories.projections;
 
-import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.enums.RoleAccountEnum;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ public interface AccountProjection {
 
     String getTaxNumber();
 
-    Role getRole();
+    RoleAccountEnum getRole();
 
     String getPhone();
 
