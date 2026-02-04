@@ -1,6 +1,8 @@
 package br.com.wss.barbersync.business.impl;
 
+import br.com.wss.barbersync.business.ClientBusiness;
 import br.com.wss.barbersync.entities.Account;
+import br.com.wss.barbersync.entities.Client;
 import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.barbersync.repositories.AccountRepository;
 import br.com.wss.base.TransactionType;
@@ -46,6 +48,9 @@ public class AccountBusinessImplTest {
 
     @InjectMocks
     AccountBusinessImpl accountBusiness;
+
+    @Mock
+    private ClientBusiness clientBusiness;
 
     private Account account;
     private Account savedAccount;
@@ -105,7 +110,6 @@ public class AccountBusinessImplTest {
     @DisplayName("Deve salvar usuário com sucesso")
     void shouldCreateAccount() {
 
-
         // ARRANGE (Preparação)
         UserTokenDetails mockTokenDetails = mock(UserTokenDetails.class);
         when(jwtToken.getUserDetails()).thenReturn(mockTokenDetails);
@@ -116,12 +120,15 @@ public class AccountBusinessImplTest {
 
         when(passwordEncoder.encode(any())).thenReturn("encoded_password");
 
+        when(clientBusiness.insert(any(Client.class))).thenReturn(new Client());
+
         // ACT (Ação)
         Account result = accountBusiness.insert(account);
 
         // ASSERT (Verificação)
         assertNotNull(result.getUid());
         assertEquals(RoleAccountEnum.ROLE_CLIENT, result.getRoleAccountEnum());
+        verify(clientBusiness).insert(any(Client.class));
     }
 
     @Test
@@ -139,7 +146,7 @@ public class AccountBusinessImplTest {
 
         // ASSERT (Verificação)
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getBody().getStatus());
-        assertEquals("A operação não pode ser realizada porque o usuário possui o papel de ROLE_CLIENT", exception.getBody().getDetail());
+        assertEquals("A operação não pode ser realizada por esse usuário", exception.getBody().getDetail());
         verify(accountRepository, never()).save(any());
     }
 
