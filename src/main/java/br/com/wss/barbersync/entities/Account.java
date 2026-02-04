@@ -1,12 +1,11 @@
 package br.com.wss.barbersync.entities;
 
-import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UuidGenerator;
 
 @Data
 @Entity
@@ -24,7 +23,7 @@ public class Account extends BaseEntity<String> {
     private String taxNumber;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private RoleAccountEnum roleAccountEnum;
 
     @Column(unique = true, nullable = false)
     private String phone;
