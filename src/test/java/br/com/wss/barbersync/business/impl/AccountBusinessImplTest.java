@@ -162,6 +162,30 @@ public class AccountBusinessImplTest {
     }
 
     @Test
+    void shouldCreateAccountClientByAdmin(){
+        UserTokenDetails mockTokenDetails = mock(UserTokenDetails.class);
+        when(jwtToken.getUserDetails()).thenReturn(mockTokenDetails);
+
+        roleAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_ADM);
+        when(mockTokenDetails.getAccount()).thenReturn(roleAccount);
+
+        savedAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
+        when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
+
+        when(clientBusiness.insert(any(Client.class))).thenReturn(new Client());
+
+        account.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
+
+        // ACT
+        Account result = accountBusiness.insert(account);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(RoleAccountEnum.ROLE_CLIENT, result.getRoleAccountEnum());
+        verify(clientBusiness).insert(any(Client.class));
+    }
+
+    @Test
     @DisplayName("Não Deve salvar usuário com por causa do ROLE_CLIENT no token")
     void shouldNonCreateAccountSetRoleUserToken() {
         // ARRANGE (Preparação)
