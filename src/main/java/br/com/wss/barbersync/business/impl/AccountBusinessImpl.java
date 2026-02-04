@@ -1,8 +1,14 @@
 package br.com.wss.barbersync.business.impl;
 
 import br.com.wss.barbersync.business.AccountBusiness;
+import br.com.wss.barbersync.business.ClientBusiness;
+import br.com.wss.barbersync.business.EmployeeBusiness;
+import br.com.wss.barbersync.business.OwnerBusiness;
 import br.com.wss.barbersync.entities.Account;
-import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.entities.Client;
+import br.com.wss.barbersync.entities.Employee;
+import br.com.wss.barbersync.entities.Owner;
+import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.barbersync.repositories.AccountRepository;
 import br.com.wss.base.AbstractBusinessImpl;
 import br.com.wss.base.TransactionType;
@@ -31,6 +37,12 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
     @Getter
     private final AccountRepository repository;
 
+    private final OwnerBusiness ownerBusiness;
+
+    private final ClientBusiness clientBusiness;
+
+    private final EmployeeBusiness employeeBusiness;
+
     private final PasswordEncoder passwordEncoder;
 
     public Optional<Account> findByEmail(String email){
@@ -47,19 +59,51 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
 
         UserTokenDetails userTokenDetails = super.getUserDetails();
 
-        Role existingRole = Optional.ofNullable(userTokenDetails.getAccount())
-                .map(Account::getRole)
+        RoleAccountEnum existingRoleAccountEnum = Optional.ofNullable(userTokenDetails.getAccount())
+                .map(Account::getRoleAccountEnum)
                 .orElse(null);
 
-        if (Role.ROLE_USER.equals(existingRole))
-            throw new BusinessException(HttpStatus.BAD_REQUEST, "A operação não pode ser realizada porque o usuário possui o papel de " + existingRole);
+        Account account = null;
 
-        if (existingRole == null)
-            entity.setRole(Role.ROLE_USER);
+        if (existingRoleAccountEnum == null) {
+            entity.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
+            account = insert(entity);
 
-        entity.setDeleted(false);
+            Client client = new Client();
+            client.setAccount(account);
+            clientBusiness.insert(client);
 
-        return super.insert(entity);
+            return account;
+        }
+
+        if (RoleAccountEnum.ROLE_CLIENT.equals(existingRoleAccountEnum))
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "A operação não pode ser realizada por esse usuário");
+
+        if (RoleAccountEnum.ROLE_ADM.equals(existingRoleAccountEnum) || RoleAccountEnum.ROLE_OWNER.equals(existingRoleAccountEnum)){
+            account = insert(entity);
+
+            if (entity.getRoleAccountEnum().equals(RoleAccountEnum.ROLE_OWNER)){
+                Owner owner = new Owner();
+                owner.setAccount(account);
+                ownerBusiness.insert(owner);
+            }
+
+            if (entity.getRoleAccountEnum().equals(RoleAccountEnum.ROLE_CLIENT)){
+                Client client = new Client();
+                client.setAccount(account);
+                clientBusiness.insert(client);
+            }
+
+            if(entity.getRoleAccountEnum().equals(RoleAccountEnum.ROLE_EMPLOYEE)){
+                Employee employee = new Employee();
+                employee.setAccount(account);
+                employeeBusiness.insert(employee); // Todo: Fazer o setDependencies employee
+            }
+
+            return account;
+        }
+
+        return account;
     }
 
     public List<Account> findAll(){
@@ -67,10 +111,10 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
     }
 
     public Page<Account> findByParams(final String uid, final String name, final String taxNumber,
-                                         final String email, final String phone, final String createdByName, final String updatedByName,
-                                         final Role role, final Boolean active, final LocalDateTime createdStartAt, final LocalDateTime createdEndAt,
-                                         final Pageable pageable){
-        return getRepository().findByParams(uid, name, taxNumber, email, phone, createdByName, updatedByName, role, active, createdStartAt, createdEndAt, pageable);
+                                      final String email, final String phone, final String createdByName, final String updatedByName,
+                                      final RoleAccountEnum roleAccountEnum, final Boolean active, final LocalDateTime createdStartAt, final LocalDateTime createdEndAt,
+                                      final Pageable pageable){
+        return getRepository().findByParams(uid, name, taxNumber, email, phone, createdByName, updatedByName, roleAccountEnum, active, createdStartAt, createdEndAt, pageable);
     }
 
     @Override
