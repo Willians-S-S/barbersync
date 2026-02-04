@@ -67,7 +67,7 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
 
         if (existingRoleAccountEnum == null) {
             entity.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
-            account = insert(entity);
+            account = super.insert(entity);
 
             Client client = new Client();
             client.setAccount(account);
@@ -80,7 +80,7 @@ public class AccountBusinessImpl extends AbstractBusinessImpl<Account, String> i
             throw new BusinessException(HttpStatus.BAD_REQUEST, "A operação não pode ser realizada por esse usuário");
 
         if (RoleAccountEnum.ROLE_ADM.equals(existingRoleAccountEnum) || RoleAccountEnum.ROLE_OWNER.equals(existingRoleAccountEnum)){
-            account = insert(entity);
+            account = super.insert(entity);
 
             if (entity.getRoleAccountEnum().equals(RoleAccountEnum.ROLE_OWNER)){
                 Owner owner = new Owner();
