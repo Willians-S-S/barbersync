@@ -1,6 +1,6 @@
 package br.com.wss.barbersync.dtos;
 
-import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.barbersync.validation.TaxNumberValid;
 import br.com.wss.base.BaseDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -31,7 +31,7 @@ public class AccountDTO extends BaseDTO<String> {
     private String taxNumber;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private RoleAccountEnum roleAccountEnum;
 
     private String phone;
 
