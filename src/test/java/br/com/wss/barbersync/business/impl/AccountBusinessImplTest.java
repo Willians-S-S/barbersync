@@ -1,9 +1,11 @@
 package br.com.wss.barbersync.business.impl;
 
 import br.com.wss.barbersync.business.ClientBusiness;
+import br.com.wss.barbersync.business.EmployeeBusiness;
 import br.com.wss.barbersync.business.OwnerBusiness;
 import br.com.wss.barbersync.entities.Account;
 import br.com.wss.barbersync.entities.Client;
+import br.com.wss.barbersync.entities.Employee;
 import br.com.wss.barbersync.entities.Owner;
 import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.barbersync.repositories.AccountRepository;
@@ -56,6 +58,9 @@ public class AccountBusinessImplTest {
 
     @Mock
     private OwnerBusiness ownerBusiness;
+
+    @Mock
+    private EmployeeBusiness employeeBusiness;
 
     private Account account;
     private Account savedAccount;
@@ -183,6 +188,30 @@ public class AccountBusinessImplTest {
         assertNotNull(result);
         assertEquals(RoleAccountEnum.ROLE_CLIENT, result.getRoleAccountEnum());
         verify(clientBusiness).insert(any(Client.class));
+    }
+
+    @Test
+    void shouldCreateAccountEmployeeByAdmin(){
+        UserTokenDetails mockTokenDetails = mock(UserTokenDetails.class);
+        when(jwtToken.getUserDetails()).thenReturn(mockTokenDetails);
+
+        roleAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_ADM);
+        when(mockTokenDetails.getAccount()).thenReturn(roleAccount);
+
+        savedAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_EMPLOYEE);
+        when(accountRepository.save(any(Account.class))).thenReturn(savedAccount);
+
+        when(employeeBusiness.insert(any(Employee.class))).thenReturn(new Employee());
+
+        account.setRoleAccountEnum(RoleAccountEnum.ROLE_EMPLOYEE);
+
+        // ACT
+        Account result = accountBusiness.insert(account);
+
+        // ASSERT
+        assertNotNull(result);
+        assertEquals(RoleAccountEnum.ROLE_EMPLOYEE, result.getRoleAccountEnum());
+        verify(employeeBusiness).insert(any(Employee.class));
     }
 
     @Test
