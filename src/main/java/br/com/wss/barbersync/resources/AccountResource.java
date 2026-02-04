@@ -4,7 +4,7 @@ import br.com.wss.barbersync.business.AccountBusiness;
 import br.com.wss.barbersync.converters.AccountConverter;
 import br.com.wss.barbersync.dtos.AccountDTO;
 import br.com.wss.barbersync.entities.Account;
-import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.base.PageImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -128,7 +128,7 @@ public class AccountResource {
             @RequestParam(required = false) final String phone,
             @RequestParam(required = false) final String createdByName,
             @RequestParam(required = false) final String updatedByName,
-            @RequestParam(required = false) final Role role,
+            @RequestParam(required = false) final RoleAccountEnum roleAccountEnum,
             @RequestParam(required = false) final Boolean active,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") final LocalDateTime createdStartAt,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") final LocalDateTime createdEndAt,
@@ -137,7 +137,7 @@ public class AccountResource {
             @RequestParam(required = false, defaultValue = "name") final String sort,
             @RequestParam(required = false, defaultValue = "ASC") final Direction direction) {
 
-        final Page<AccountDTO> resultPage = accountBusiness.findByParams(uid, name, taxNumber, email, phone, createdByName, updatedByName, role, active, createdStartAt, createdEndAt, PageRequest.of(page, size, Sort.by(direction, sort))).map(accountConverter::convertToDTO);
+        final Page<AccountDTO> resultPage = accountBusiness.findByParams(uid, name, taxNumber, email, phone, createdByName, updatedByName, roleAccountEnum, active, createdStartAt, createdEndAt, PageRequest.of(page, size, Sort.by(direction, sort))).map(accountConverter::convertToDTO);
 
         if (!resultPage.hasContent())
             return ResponseEntity.noContent().build();
@@ -161,7 +161,7 @@ public class AccountResource {
                                               "phone": "85999990000",
                                               "email": "willians@email.com",
                                               "password": "Senha@12345",
-                                              "role": "ROLE_USER"
+                                              "roleAccountEnum": "ROLE_USER"
                                             }
                                     """
                             )
