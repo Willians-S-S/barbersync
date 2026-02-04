@@ -1,7 +1,7 @@
 package br.com.wss.barbersync.business.impl;
 
 import br.com.wss.barbersync.entities.Account;
-import br.com.wss.barbersync.enums.Role;
+import br.com.wss.barbersync.enums.RoleAccountEnum;
 import br.com.wss.barbersync.repositories.AccountRepository;
 import br.com.wss.base.TransactionType;
 import br.com.wss.exception.BusinessException;
@@ -55,7 +55,7 @@ public class AccountBusinessImplTest {
     void setUp() {
         account = new Account();
         account.setUid(null);
-        account.setRole(Role.ROLE_USER);
+        account.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
         account.setEmail("email@email.com");
         account.setPassword("password");
         account.setPhone("123456789");
@@ -74,7 +74,7 @@ public class AccountBusinessImplTest {
 
         savedAccount = new Account();
         savedAccount.setUid(UUID.randomUUID().toString());
-        savedAccount.setRole(Role.ROLE_USER);
+        savedAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
         savedAccount.setEmail("email@email.com");
         savedAccount.setPassword("password");
         savedAccount.setPhone("123456789");
@@ -92,7 +92,7 @@ public class AccountBusinessImplTest {
 
         roleAccount = new Account();
         roleAccount.setUid(UUID.randomUUID().toString());
-        roleAccount.setRole(Role.ROLE_USER);
+        roleAccount.setRoleAccountEnum(RoleAccountEnum.ROLE_CLIENT);
         roleAccount.setEmail("email@email.com");
         roleAccount.setPassword("password");
         roleAccount.setPhone("123456789");
@@ -121,11 +121,11 @@ public class AccountBusinessImplTest {
 
         // ASSERT (Verificação)
         assertNotNull(result.getUid());
-        assertEquals(Role.ROLE_USER, result.getRole());
+        assertEquals(RoleAccountEnum.ROLE_CLIENT, result.getRoleAccountEnum());
     }
 
     @Test
-    @DisplayName("Não Deve salvar usuário com por causa do ROLE_USER no token")
+    @DisplayName("Não Deve salvar usuário com por causa do ROLE_CLIENT no token")
     void shouldNonCreateAccountSetRoleUserToken() {
         // ARRANGE (Preparação)
 
@@ -139,7 +139,7 @@ public class AccountBusinessImplTest {
 
         // ASSERT (Verificação)
         assertEquals(HttpStatus.BAD_REQUEST.value(), exception.getBody().getStatus());
-        assertEquals("A operação não pode ser realizada porque o usuário possui o papel de ROLE_USER", exception.getBody().getDetail());
+        assertEquals("A operação não pode ser realizada porque o usuário possui o papel de ROLE_CLIENT", exception.getBody().getDetail());
         verify(accountRepository, never()).save(any());
     }
 
@@ -337,22 +337,22 @@ public class AccountBusinessImplTest {
     }
 
     @Test
-    @DisplayName("Deve filtrar pelo criador e pelo papel (Role)")
+    @DisplayName("Deve filtrar pelo criador e pelo papel (RoleAccountEnum)")
     void shouldFilterByCreatorAndRole() {
         Pageable pageable = PageRequest.of(0, 10);
         String creator = "Admin";
-        Role role = Role.ROLE_ADM;
+        RoleAccountEnum roleAccountEnum = RoleAccountEnum.ROLE_ADM;
 
         Page<Account> page = new PageImpl<>(List.of(account), pageable, 1);
 
         when(accountRepository.findByParams(null, null, null, null, null,
-                creator, null, role, null, null, null, pageable)).thenReturn(page);
+                creator, null, roleAccountEnum, null, null, null, pageable)).thenReturn(page);
 
         Page<Account> result = accountBusiness.findByParams(null, null, null, null, null,
-                creator, null, role, null, null, null, pageable);
+                creator, null, roleAccountEnum, null, null, null, pageable);
 
         assertNotNull(result);
-        verify(accountRepository).findByParams(null, null, null, null, null, creator, null, role, null, null, null, pageable);
+        verify(accountRepository).findByParams(null, null, null, null, null, creator, null, roleAccountEnum, null, null, null, pageable);
     }
 
     @Test
